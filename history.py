@@ -47,7 +47,8 @@ def parse(url):
     """ Removes "http://", "https://" or "www" from a URL, ai module learns without prefixes """
     domain = url.replace("http://", "")
     domain = domain.replace("https://", "")
-    domain = domain.replace("www.", "")
+    if domain.startswith("www."):
+        domain = domain[4:]
     return domain
 
 def predict(db, site):
