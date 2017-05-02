@@ -363,18 +363,20 @@ class Proxy(multiprocessing.Process):
             return
         
         # bail out if the url request is malicious
-        url = data.split(SP)[1].decode("utf-8")
-        bad = history.isBadUrl(url)
-        connection_malicious_pkt = CRLF.join([
-            b'<html><head><title>Title goes here.</title></head>',
-            bytes("<body><p>You accessed: %s</p>"%url,'utf-8'),
-            b"<p>This is a malicious site.</p>",
-            b"</body></html>",
-            CRLF
-        ])
-        if bad:
-            self.client.queue(connection_malicious_pkt)
-            return
+        tokens = data.split(SP)
+        if len(tokens) >= 2:
+            url = tokens[1].decode("utf-8")
+            bad = history.isBadUrl(url)
+            connection_malicious_pkt = CRLF.join([
+                b'<html><head><title>Title goes here.</title></head>',
+                bytes("<body><p>You accessed: %s</p>"%url,'utf-8'),
+                b"<p>This is a malicious site.</p>",
+                b"</body></html>",
+                CRLF
+            ])
+            if bad:
+                self.client.queue(connection_malicious_pkt)
+                return
         
         # parse http request
         self.request.parse(data)
