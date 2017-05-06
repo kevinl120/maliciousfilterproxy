@@ -12,7 +12,8 @@ from pymongo import MongoClient
 from shutil import copyfile
 
 print("machine learning...")
-vectorizer, lgs  = ai.TL()
+vectorizer, lgs = ai.TL()
+
 
 def populateMongoDB():
     """ Top level function to be called by proxy.py to populate MongoDB """
@@ -25,10 +26,12 @@ def populateMongoDB():
     for site in sites:
         predict(db, site)
     client.close()
-    
+
+
 def readBrowserHistory():
-    """ Reads Chrome browser history and returns set of URLs """    
-    history_db = os.path.expanduser('~') + "/Library/Application Support/Google/Chrome/Default/history"
+    """ Reads Chrome browser history and returns set of URLs """
+    history_db = os.path.expanduser(
+        '~') + "/Library/Application Support/Google/Chrome/Default/history"
     # copy history_db to workaround Chrome history permissions
     copy_db = os.path.expanduser('~') + "/History"
     copyfile(history_db, copy_db)
@@ -43,6 +46,7 @@ def readBrowserHistory():
         sites.add(parse(result[0]))
     return sites
 
+
 def parse(url):
     """ Removes "http://", "https://" or "www" from a URL, ai module learns without prefixes """
     domain = url.replace("http://", "")
@@ -51,19 +55,21 @@ def parse(url):
         domain = domain[4:]
     return domain
 
+
 def predict(db, site):
     """ Uses ai module to classify URLs, populates MongoDB, returns classification result """
     try:
         X_predict = [site]
         X_predict = vectorizer.transform(X_predict)
         y_Predict = lgs.predict(X_predict)
-        print(site, y_Predict)	# print predicted values
-        db.posts.replace_one({"url":site}, {"url":site, "score":y_Predict[0]},
-                upsert=True);
+        print(site, y_Predict)  # print predicted values
+        db.posts.replace_one({"url": site}, {"url": site, "score": y_Predict[0]},
+                             upsert=True)
         return y_Predict[0]
     except SystemError as e:
         # ignore malformed URLs
         print("failed to predict ", site)
+
 
 def isBadUrl(url):
     """
@@ -76,7 +82,7 @@ def isBadUrl(url):
         return False
     client = MongoClient()
     db = client.test
-    res = db.posts.find_one({ "url": url })
+    res = db.posts.find_one({"url": url})
     if res:
         val = res['score']
     else:
